@@ -5,6 +5,10 @@
   "blockSpecs": [
     [ " ", "beep", "beep" ],
     [ "r", "volt", "volt" ],
-    [ "r", "firmware", "firmware" ]
-  ]
+    [ "r", "firmware", "firmware" ],
+    [ "r", "led %m.leftright", "leds"]
+  ],
+  "menus": {
+    "leftright": [ "left", "right" ]
+  }
 }

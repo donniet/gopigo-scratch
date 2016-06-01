@@ -5,6 +5,7 @@ import BaseHTTPServer
 HOST_NAME = ""
 PORT_NUMBER = 8080
 
+buzzer_pin = 10
 
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
@@ -15,11 +16,15 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.wfile.write("volt %s\n" % gopigo.volt())
             s.wfile.write("firmware %s\n" % gopigo.fw_ver())
         elif s.path == "/beep":
+            gopigo.analogWrite(buzzer_pin, 20)
+            time.sleep(0.2)
+            gopigo.analogWrite(buzzer_pin, 0)
             s.send_response(200)
             s.send_header("Content-Type", "text/plain")
             s.end_headers()
             s.wfile.write("")
         elif s.path == "/reset_all":
+            gopigo.analogWrite(buzzer_pin, 0)
             s.send_response(200)
             s.send_header("Content-Type", "text/plain")
             s.end_headers()
