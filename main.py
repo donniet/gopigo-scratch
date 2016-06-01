@@ -50,6 +50,7 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 gopigo.enable_encoders()
                 gopigo.enc_tgt(1, 1, amount)
                 gopigo.fwd()
+                s.close_connection()
                 while gopigo.read_status()[0] != 0:
                     time.sleep(0.05)
                 s.server.waitingOn = None
@@ -64,10 +65,11 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 gopigo.enable_encoders()
                 gopigo.enc_tgt(1, 1, amount)
                 gopigo.bwd()
+                s.send_response(200)
+                s.close_connection()
                 while gopigo.read_status()[0] != 0:
                     time.sleep(0.05)
                 s.server.waitingOn = None
-                s.send_response(200)
         elif s.path == "/beep":
             gopigo.analogWrite(buzzer_pin, 20)
             time.sleep(0.2)
