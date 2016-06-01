@@ -8,6 +8,7 @@ PORT_NUMBER = 8080
 buzzer_pin = 10
 ledl_pin = 17
 ledr_pin = 16
+waitingOn = nil
 
 
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -31,6 +32,20 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if parts[3] == "on":
                 val = 1
             gopigo.digitalWrite(pin, val)
+            s.send_response(200)
+        elif s.path.startswith("/move_forward/"):
+            parts = s.path.split("/")
+            amount = int(parts[2])
+            gopigo.enable_encoders()
+            gopigo.enc_tgt(1,1,amount)
+            gopigo.fwd()
+            s.send_response(200)
+        elif s.path.startswith("/move_backward/"):
+            parts = s.path.split("/")
+            amount = int(parts[2])
+            gopigo.enable_encoders()
+            gopigo.enc_tgt(1,1,amount)
+            gopigo.bwd()
             s.send_response(200)
         elif s.path == "/beep":
             gopigo.analogWrite(buzzer_pin, 20)
