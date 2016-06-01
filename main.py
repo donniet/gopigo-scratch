@@ -22,7 +22,7 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.send_header("Content-Type", "text/plain")
             s.end_headers()
             if s.server.waitingOn is not None:
-                s.wfile.write("_busy %s\n", s.server.waitingOn)
+                s.wfile.write("_busy %s\n" % s.server.waitingOn)
             else:
                 s.wfile.write("volt %s\n" % gopigo.volt())
                 s.wfile.write("firmware %s\n" % gopigo.fw_ver())
