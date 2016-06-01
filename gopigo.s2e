@@ -7,8 +7,10 @@
     [ "r", "volt", "volt" ],
     [ "r", "firmware", "firmware" ],
     [ "r", "led %m.leftright", "leds"]
+    [ " ", "led %m.leftright %m.onoff", "leds"]
   ],
   "menus": {
-    "leftright": [ "left", "right" ]
+    "leftright": [ "left", "right" ],
+    "onoff": [ "on", "off" ]
   }
 }

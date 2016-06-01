@@ -6,6 +6,8 @@ HOST_NAME = ""
 PORT_NUMBER = 8080
 
 buzzer_pin = 10
+ledl_pin = 17
+ledr_pin = 16
 
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
@@ -15,6 +17,8 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.end_headers()
             s.wfile.write("volt %s\n" % gopigo.volt())
             s.wfile.write("firmware %s\n" % gopigo.fw_ver())
+            s.wfile.write("led/left %s\n" % gopigo.digitalRead(ledl_pin))
+            s.wfile.write("led/right %s\n" % gopigo.digitalRead(ledr_pin))
         elif s.path == "/beep":
             gopigo.analogWrite(buzzer_pin, 20)
             time.sleep(0.2)
