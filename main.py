@@ -9,6 +9,7 @@ buzzer_pin = 10
 ledl_pin = 17
 ledr_pin = 16
 
+
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
         if s.path == "/poll":
@@ -19,6 +20,16 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.wfile.write("firmware %s\n" % gopigo.fw_ver())
             s.wfile.write("led/left %s\n" % gopigo.digitalRead(ledl_pin))
             s.wfile.write("led/right %s\n" % gopigo.digitalRead(ledr_pin))
+        elif s.path.startswith("/leds"):
+            parts = s.path.split("/")
+            pin = ledl_pin
+            val = 0
+            if parts[2] == "right":
+                pin = ledr_pin
+            if parts[3] == "on":
+                val = 1
+            gopigo.digitalWrite(pin, val)
+            s.send_response(200)
         elif s.path == "/beep":
             gopigo.analogWrite(buzzer_pin, 20)
             time.sleep(0.2)
