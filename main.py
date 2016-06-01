@@ -23,7 +23,7 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.send_response(200)
             s.send_header("Content-Type", "text/plain")
             s.end_headers()
-            s.wfile.writ("")
+            s.wfile.write("")
         else:
             s.send_error(404, "Unknown path %s" % s.path)
 
