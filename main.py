@@ -18,8 +18,10 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.end_headers()
             s.wfile.write("volt %s\n" % gopigo.volt())
             s.wfile.write("firmware %s\n" % gopigo.fw_ver())
-            s.wfile.write("led/left %s\n" % gopigo.digitalRead(ledl_pin))
-            s.wfile.write("led/right %s\n" % gopigo.digitalRead(ledr_pin))
+            ledl = gopigo.digitalRead(ledl_pin)
+            ledr = gopigo.digitalRead(ledr_pin)
+            s.wfile.write("led/left %s\n" % "on" if ledl != 0 else "off")
+            s.wfile.write("led/right %s\n" % "on" if ledr != 0 else "off")
         elif s.path.startswith("/leds"):
             parts = s.path.split("/")
             pin = ledl_pin
@@ -39,6 +41,8 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.end_headers()
             s.wfile.write("")
         elif s.path == "/reset_all":
+            gopigo.digitalWrite(ledl_pin, 0)
+            gopigo.digitalWrite(ledr_pin, 0)
             gopigo.analogWrite(buzzer_pin, 0)
             s.send_response(200)
             s.send_header("Content-Type", "text/plain")

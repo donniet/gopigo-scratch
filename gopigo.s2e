@@ -6,7 +6,7 @@
     [ " ", "beep", "beep" ],
     [ "r", "volt", "volt" ],
     [ "r", "firmware", "firmware" ],
-    [ "r", "led %m.leftright", "leds"]
+    [ "r", "led %m.leftright", "leds"],
     [ " ", "led %m.leftright %m.onoff", "leds"]
   ],
   "menus": {
