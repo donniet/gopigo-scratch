@@ -21,12 +21,15 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.send_response(200)
             s.send_header("Content-Type", "text/plain")
             s.end_headers()
-            s.wfile.write("volt %s\n" % gopigo.volt())
-            s.wfile.write("firmware %s\n" % gopigo.fw_ver())
-            ledl = gopigo.digitalRead(ledl_pin)
-            ledr = gopigo.digitalRead(ledr_pin)
-            s.wfile.write("led/left %s\n" % "on" if ledl != 0 else "off")
-            s.wfile.write("led/right %s\n" % "on" if ledr != 0 else "off")
+            if s.server.waitingOn is not None:
+                s.wfile.write("_busy %s\n", s.server.waitingOn)
+            else:
+                s.wfile.write("volt %s\n" % gopigo.volt())
+                s.wfile.write("firmware %s\n" % gopigo.fw_ver())
+                ledl = gopigo.digitalRead(ledl_pin)
+                ledr = gopigo.digitalRead(ledr_pin)
+                s.wfile.write("led/left %s\n" % "on" if ledl != 0 else "off")
+                s.wfile.write("led/right %s\n" % "on" if ledr != 0 else "off")
         elif s.path.startswith("/leds"):
             parts = s.path.split("/")
             pin = ledl_pin
@@ -38,19 +41,33 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             gopigo.digitalWrite(pin, val)
             s.send_response(200)
         elif s.path.startswith("/move_forward/"):
-            parts = s.path.split("/")
-            amount = int(parts[2])
-            gopigo.enable_encoders()
-            gopigo.enc_tgt(1, 1, amount)
-            gopigo.fwd()
-            s.send_response(200)
+            if s.server.waitingOn is not None:
+                s.send_error(400, "waiting on %s" % s.server.waitingOn)
+            else:
+                parts = s.path.split("/")
+                s.server.waitingOn = int(parts[2])
+                amount = int(parts[3])
+                gopigo.enable_encoders()
+                gopigo.enc_tgt(1, 1, amount)
+                gopigo.fwd()
+                while gopigo.read_status()[0] != 0:
+                    time.sleep(0.05)
+                s.server.waitingOn = None
+                s.send_response(200)
         elif s.path.startswith("/move_backward/"):
-            parts = s.path.split("/")
-            amount = int(parts[2])
-            gopigo.enable_encoders()
-            gopigo.enc_tgt(1, 1, amount)
-            gopigo.bwd()
-            s.send_response(200)
+            if s.server.waitingOn is not None:
+                s.send_error(400, "waiting on %s" % s.server.waitingOn)
+            else:
+                parts = s.path.split("/")
+                s.server.waitingOn = int(parts[2])
+                amount = int(parts[3])
+                gopigo.enable_encoders()
+                gopigo.enc_tgt(1, 1, amount)
+                gopigo.bwd()
+                while gopigo.read_status()[0] != 0:
+                    time.sleep(0.05)
+                s.server.waitingOn = None
+                s.send_response(200)
         elif s.path == "/beep":
             gopigo.analogWrite(buzzer_pin, 20)
             time.sleep(0.2)
