@@ -1,0 +1,9 @@
+{
+  "extensionName": "gopigo scratch extension",
+  "extensionPort": 8080,
+  "host": "dex.local",
+  "blockSpecs": [
+    [ " ", "beep", "beep" ],
+    [ "r", "volt", "volt" ]
+  ]
+}
