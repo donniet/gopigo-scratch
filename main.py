@@ -8,7 +8,11 @@ PORT_NUMBER = 8080
 buzzer_pin = 10
 ledl_pin = 17
 ledr_pin = 16
-waitingOn = nil
+waitingOn = None
+
+
+class GoPiGoServer(BaseHTTPServer.HTTPServer):
+    waitingOn = None
 
 
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -37,14 +41,14 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             parts = s.path.split("/")
             amount = int(parts[2])
             gopigo.enable_encoders()
-            gopigo.enc_tgt(1,1,amount)
+            gopigo.enc_tgt(1, 1, amount)
             gopigo.fwd()
             s.send_response(200)
         elif s.path.startswith("/move_backward/"):
             parts = s.path.split("/")
             amount = int(parts[2])
             gopigo.enable_encoders()
-            gopigo.enc_tgt(1,1,amount)
+            gopigo.enc_tgt(1, 1, amount)
             gopigo.bwd()
             s.send_response(200)
         elif s.path == "/beep":
@@ -67,8 +71,7 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             s.send_error(404, "Unknown path %s" % s.path)
 
 if __name__ == "__main__":
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST_NAME, PORT_NUMBER), GoPiGoHandler)
+    httpd = GoPiGoServer((HOST_NAME, PORT_NUMBER), GoPiGoHandler)
     print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
     try:
         httpd.serve_forever()
