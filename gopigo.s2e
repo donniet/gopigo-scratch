@@ -4,6 +4,7 @@
   "host": "dex.local",
   "blockSpecs": [
     [ " ", "beep", "beep" ],
-    [ "r", "volt", "volt" ]
+    [ "r", "volt", "volt" ],
+    [ "r", "firmware", "firmware" ]
   ]
 }
