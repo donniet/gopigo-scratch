@@ -4,10 +4,12 @@
   "host": "dex.local",
   "blockSpecs": [
     [ " ", "beep", "beep" ],
+    [ " ", "led %m.leftright %m.onoff", "leds"],
+    [ "w", "move forward %n and wait", "move_forward"],
+    [ "w", "move backward %n and wait", "move_backward"],
     [ "r", "volt", "volt" ],
     [ "r", "firmware", "firmware" ],
-    [ "r", "led %m.leftright", "leds"],
-    [ " ", "led %m.leftright %m.onoff", "leds"]
+    [ "r", "led %m.leftright", "leds"]
   ],
   "menus": {
     "leftright": [ "left", "right" ],
