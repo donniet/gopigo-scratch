@@ -9,6 +9,7 @@
     [ "w", "turn %m.leftright by %n degrees", "turn"],
     [ " ", "set servo to %n degrees", "servo"],
     [ " ", "set speed of %m.leftrightboth to %n", "set_speed"],
+    [ " ", "stop", "stop"],
     [ " ", "trim %n", "trim"],
     [ "r", "volt", "volt" ],
     [ "r", "firmware", "firmware" ],
