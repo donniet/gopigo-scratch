@@ -4,15 +4,21 @@
   "host": "dex.local",
   "blockSpecs": [
     [ " ", "beep", "beep" ],
-    [ " ", "led %m.leftright %m.onoff", "leds"],
-    [ "w", "move forward %n and wait", "move_forward"],
-    [ "w", "move backward %n and wait", "move_backward"],
+    [ " ", "led %m.leftrightboth %m.onoff", "leds"],
+    [ "w", "move %m.forwardbackward %n and wait", "move"],
+    [ "w", "turn %m.leftright by %n degrees", "turn"],
+    [ " ", "set servo to %n degrees", "servo"],
+    [ " ", "set speed of %m.leftrightboth to %n", "set_speed"],
+    [ " ", "trim %n", "trim"],
     [ "r", "volt", "volt" ],
     [ "r", "firmware", "firmware" ],
-    [ "r", "led %m.leftright", "leds"]
+    [ "r", "trim", "trim" ],
+    [ "r", "ultrasonic distance", "us_dist"]
   ],
   "menus": {
-    "leftright": [ "left", "right" ],
+    "forwardbackward": [ "forward", "backward" ],
+    "leftrightboth": [ "left", "right", "both" ],
+    "leftright": ["left", "right"],
     "onoff": [ "on", "off" ]
   }
 }
