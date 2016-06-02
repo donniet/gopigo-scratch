@@ -39,6 +39,9 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 s.wfile.write("led/right %s\n" % "on" if ledr != 0 else "off")
                 s.wfile.write("trim %s\n" % gopigo.trim_read())
                 s.wfile.write("us_dist %s\n" % s.server.us_dist)
+        elif s.path.startswith("/stop"):
+            gopigo.stop()
+            s.send_response(200)
         elif s.path.startswith("/trim/"):
             parts = s.path.split("/")
             trim = int(parts[2])
