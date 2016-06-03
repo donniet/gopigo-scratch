@@ -9,82 +9,102 @@ except ImportError:
     class gopigo(object):
         @staticmethod
         def us_dist(pin):
+            print "us_dist"
             return 100
 
         @staticmethod
         def volt():
+            print "volt"
             return 11.5
 
         @staticmethod
         def fw_ver():
+            print "fw_ver"
             return "1.7"
 
         @staticmethod
         def digitalRead(pin):
+            print "digitalRead"
             return 0
 
         @staticmethod
         def digitalWrite(pin, val):
+            print "digitalWrite"
             pass
 
         @staticmethod
         def trim_read():
+            print "trim_read"
             return 100
 
         @staticmethod
         def trim_write(val):
+            print "trim_write"
             pass
 
         @staticmethod
         def enc_tgt(left, right, amount):
+            print "enc_tgt"
             pass
 
         @staticmethod
         def stop():
+            print "stop"
             pass
 
         @staticmethod
         def set_left_speed(val):
+            print "set_left_speed"
             pass
 
         @staticmethod
         def set_right_speed(val):
+            print "set_right_speed"
             pass
 
         @staticmethod
         def set_speed(val):
+            print "set_speed"
             pass
 
         @staticmethod
         def servo(val):
+            print "servo"
             pass
 
         @staticmethod
         def analogWrite(pin, val):
+            print "analogWrite"
             pass
 
         @staticmethod
         def enable_encoders():
+            print "enable_encoders"
             pass
 
         @staticmethod
         def disable_encoders():
+            print "disable_encoders"
             pass
 
         @staticmethod
         def right():
+            print "right"
             pass
 
         @staticmethod
         def left():
+            print "left"
             pass
 
         @staticmethod
         def fwd():
+            print "fwd"
             pass
 
         @staticmethod
         def read_status():
+            print "read_status"
             return [0, 0]
 
 
@@ -122,21 +142,27 @@ class Robot:
     done = False
 
     def start_thread(self):
-        self.mythread = thread.start_new_thread(self.loop, self)
+        self.mythread = thread.start_new_thread(self.loop, ())
 
     def send_command(self, command):
+        print "sending command: %s" % command
         self.commandVar.acquire()
+        print "acquired"
         self.command = command
-        self.commandVar.notify()
+        self.commandVar.notify_all()
         self.commandVar.release()
 
     def loop(self):
+        print "in loop"
         while True:
+            print "outside acquire"
             self.commandVar.acquire()
-            while not self.Done and self.command is None:
+            print "acquired in loop"
+            while not self.done and self.command is None:
+                print "in while in loop"
                 self.commandVar.wait()
 
-            if self.Done:
+            if self.done:
                 self.commandVar.release()
                 break
 
@@ -155,13 +181,14 @@ class Robot:
         parts = command.split("/")
 
         if parts[1] == "poll":
+            print "poll"
             self.us_dist = gopigo.us_dist(usdist_pin)
             self.enc_status = gopigo.read_status()[0]
             self.volt = gopigo.volt()
             self.fw_ver = gopigo.fw_ver()
             self.trim = gopigo.trim_read() - 100
 
-            if enc_status == 0:
+            if self.enc_status == 0:
                 self.waitingOn = None
         elif parts[1] == "stop":
             gopigo.stop()
@@ -243,6 +270,7 @@ class Robot:
 
 class GoPiGoServer(BaseHTTPServer.HTTPServer):
     robot = Robot()
+    robot.start_thread()
 
 
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
