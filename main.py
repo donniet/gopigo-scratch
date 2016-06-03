@@ -1,6 +1,92 @@
 import time
-import gopigo
 import BaseHTTPServer
+import thread
+import threading
+
+try:
+    import gopigo
+except ImportError:
+    class gopigo(object):
+        @staticmethod
+        def us_dist(pin):
+            return 100
+
+        @staticmethod
+        def volt():
+            return 11.5
+
+        @staticmethod
+        def fw_ver():
+            return "1.7"
+
+        @staticmethod
+        def digitalRead(pin):
+            return 0
+
+        @staticmethod
+        def digitalWrite(pin, val):
+            pass
+
+        @staticmethod
+        def trim_read():
+            return 100
+
+        @staticmethod
+        def trim_write(val):
+            pass
+
+        @staticmethod
+        def enc_tgt(left, right, amount):
+            pass
+
+        @staticmethod
+        def stop():
+            pass
+
+        @staticmethod
+        def set_left_speed(val):
+            pass
+
+        @staticmethod
+        def set_right_speed(val):
+            pass
+
+        @staticmethod
+        def set_speed(val):
+            pass
+
+        @staticmethod
+        def servo(val):
+            pass
+
+        @staticmethod
+        def analogWrite(pin, val):
+            pass
+
+        @staticmethod
+        def enable_encoders():
+            pass
+
+        @staticmethod
+        def disable_encoders():
+            pass
+
+        @staticmethod
+        def right():
+            pass
+
+        @staticmethod
+        def left():
+            pass
+
+        @staticmethod
+        def fwd():
+            pass
+
+        @staticmethod
+        def read_status():
+            return [0, 0]
+
 
 HOST_NAME = ""
 PORT_NUMBER = 8080
@@ -16,126 +102,168 @@ WHEEL_RAD = 3.25
 CHASS_WID = 13.5
 
 
-class GoPiGoServer(BaseHTTPServer.HTTPServer):
-    waitingOn = None
+class Robot:
     us_dist = 0
+    volts = 0.0
+    fw_ver = "0.0"
+    ledl = 0
+    ledr = 0
+    trim = 0
+    left_speed = 75
+    right_speed = 75
+    enc_status = 0
+    beep_volume = 20
+    beep_time = 0.2
+
+    commandVar = threading.Condition()
+    mythread = None
+    waitingOn = None
+    command = None
+    done = False
+
+    def start_thread(self):
+        self.mythread = thread.start_new_thread(self.loop, self)
+
+    def send_command(self, command):
+        self.commandVar.acquire()
+        self.command = command
+        self.commandVar.notify()
+        self.commandVar.release()
+
+    def loop(self):
+        while True:
+            self.commandVar.acquire()
+            while not self.Done and self.command is None:
+                self.commandVar.wait()
+
+            if self.Done:
+                self.commandVar.release()
+                break
+
+            self.process_command(self.command)
+            self.command = None
+            self.commandVar.release()
+
+    def kill(self):
+        self.commandVar.acquire()
+        self.Done = True
+        self.commandVar.notify()
+        self.commandVar.release()
+        self.mythread.join()
+
+    def process_command(self, command):
+        parts = command.split("/")
+
+        if parts[1] == "poll":
+            self.us_dist = gopigo.us_dist(usdist_pin)
+            self.enc_status = gopigo.read_status()[0]
+            self.volt = gopigo.volt()
+            self.fw_ver = gopigo.fw_ver()
+            self.trim = gopigo.trim_read() - 100
+
+            if enc_status == 0:
+                self.waitingOn = None
+        elif parts[1] == "stop":
+            gopigo.stop()
+        elif parts[1] == "trim_write":
+            gopigo.trim_write(int(parts[2]))
+        elif parts[1] == "trim_read":
+            self.trim = gopigo.trim_read() - 100
+        elif parts[1] == "set_speed":
+            if parts[2] == "left":
+                self.left_speed = int(parts[3])
+            elif parts[2] == "right":
+                self.right_speed = int(parts[3])
+            else:
+                self.right_speed = int(parts[3])
+                self.left_speed = int(parts[3])
+            gopigo.set_left_speed(self.left_speed)
+            gopigo.set_right_speed(self.right_speed)
+        elif parts[1] == "leds":
+            val = 0
+            if parts[3] == "on":
+                val = 1
+            elif parts[3] == "off":
+                val = 0
+            elif parts[3] == "toggle":
+                val = -1
+
+            if parts[2] == "right" or parts[2] == "both":
+                if val >= 0:
+                    self.ledr = val
+                else:
+                    self.ledr = 1 - self.ledr
+
+            if parts[2] == "left" or parts[2] == "both":
+                if val >= 0:
+                    self.ledl = val
+                else:
+                    self.ledl = 1 - self.ledl
+
+            gopigo.digitalWrite(ledr_pin, self.ledr)
+            gopigo.digitalWrite(ledl_pin, self.ledl)
+        elif parts[1] == "servo":
+            gopigo.servo(int(parts[2]))
+        elif parts[1] == "turn":
+            self.waitingOn = parts[2]
+            direction = parts[3]
+            amount = int(parts[4])
+            encleft = 0 if direction == "left" else 1
+            encright = 1 if direction == "left" else 0
+            gopigo.enable_encoders()
+            gopigo.enc_tgt(encleft, encright, int(amount / DPR))
+            if direction == "left":
+                gopigo.left()
+            else:
+                gopigo.right()
+        elif parts[1] == "move":
+            self.waitingOn = int(parts[2])
+            direction = parts[3]
+            amount = int(parts[4])
+            gopigo.enable_encoders()
+            gopigo.enc_tgt(1, 1, amount)
+            if direction == "backward":
+                gopigo.bwd()
+            else:
+                gopigo.fwd()
+        elif parts[1] == "beep":
+            gopigo.analogWrite(buzzer_pin, self.beep_volume)
+            time.sleep(self.beep_time)
+            gopigo.analogWrite(buzzer_pin, 0)
+        elif parts[1] == "reset_all":
+            self.ledl = 0
+            self.ledr = 0
+
+            gopigo.digitalWrite(ledl_pin, self.ledl)
+            gopigo.digitalWrite(ledr_pin, self.ledr)
+            gopigo.analogWrite(buzzer_pin, 0)
+#           gopigo.servo(90)
+            gopigo.stop()
+
+
+class GoPiGoServer(BaseHTTPServer.HTTPServer):
+    robot = Robot()
 
 
 class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(s):
-        if s.path == "/poll":
-            s.server.us_dist = gopigo.us_dist(usdist_pin)
-            s.send_response(200)
-            s.send_header("Content-Type", "text/plain")
-            s.end_headers()
-            if s.server.waitingOn is not None:
-                s.wfile.write("_busy %s\n" % s.server.waitingOn)
-            else:
-                s.wfile.write("volt %s\n" % gopigo.volt())
-                s.wfile.write("firmware %s\n" % gopigo.fw_ver())
-                ledl = gopigo.digitalRead(ledl_pin)
-                ledr = gopigo.digitalRead(ledr_pin)
-                s.wfile.write("led/left %s\n" % "on" if ledl != 0 else "off")
-                s.wfile.write("led/right %s\n" % "on" if ledr != 0 else "off")
-                s.wfile.write("trim %s\n" % gopigo.trim_read())
-                s.wfile.write("us_dist %s\n" % s.server.us_dist)
-        elif s.path.startswith("/stop"):
-            gopigo.stop()
-            s.send_response(200)
-        elif s.path.startswith("/trim/"):
-            parts = s.path.split("/")
-            trim = int(parts[2])
-            gopigo.trim_write(trim)
-            s.send_response(200)
-        elif s.path.startswith("/set_speed/"):
-            parts = s.path.split("/")
-            speed = int(parts[3])
-            if parts[2] == "left":
-                gopigo.set_left_speed(speed)
-            elif parts[2] == "right":
-                gopigo.set_right_speed(speed)
-            else:
-                gopigo.set_speed(speed)
-            s.send_response(200)
-        elif s.path.startswith("/leds"):
-            parts = s.path.split("/")
-            pin = ledl_pin
-            val = 0
-            
-            if parts[3] == "on":
-                val = 1
+        s.server.robot.send_command(s.path)
+        s.send_response(200)
+        s.send_header("Content-Type", "text/plain")
+        s.end_headers()
 
-            if parts[2] == "both":
-                gopigo.digitalWrite(ledr_pin, val);
-                gopigo.digitalWrite(ledl_pin, val);
+        if s.path == "/poll":
+            s.server.robot.commandVar.acquire()
+            if s.server.robot.waitingOn is not None:
+                s.wfile.write("_busy %s\n" % s.server.robot.waitingOn)
             else:
-                if parts[2] == "right":
-                    pin = ledr_pin
-                elif parts[2] == "left":
-                    pin = ledl_pin
-                gopigo.digitalWrite(pin, val)
-            s.send_response(200)
-        elif s.path.startswith("/servo/"):
-            parts = s.path.split("/")
-            amount = int(parts[2]) + 90
-            gopigo.servo(amount)
-        elif s.path.startswith("/turn/"):
-            if s.server.waitingOn is not None:
-                s.send_error(400, "waiting on %s" % s.server.waitingOn)
-            else:
-                parts = s.path.split("/")
-                s.server.waitingOn = int(parts[2])
-                direction = parts[3]
-                amount = int(parts[4])
-                encleft = 0 if direction == "left" else 1
-                encright = 1 if direction == "left" else 0
-                gopigo.enc_tgt(encleft, encright, int(amount / DPR))
-                if direction == "left":
-                    gopigo.left()
-                else:
-                    gopigo.right()
-                while gopigo.read_status()[0] != 0:
-                    time.sleep(0.05)
-                s.server.waitingOn = None
-                s.send_response(200)
-        elif s.path.startswith("/move/"):
-            if s.server.waitingOn is not None:
-                s.send_error(400, "waiting on %s" % s.server.waitingOn)
-            else:
-                parts = s.path.split("/")
-                s.server.waitingOn = int(parts[2])
-                direction = parts[3]
-                amount = int(parts[4])
-                gopigo.enable_encoders()
-                gopigo.enc_tgt(1, 1, amount)
-                if direction == "backward":
-                    gopigo.bwd()
-                else:
-                    gopigo.fwd()
-                while gopigo.read_status()[0] != 0:
-                    time.sleep(0.05)
-                s.server.waitingOn = None
-                s.send_response(200)
-        elif s.path == "/beep":
-            gopigo.analogWrite(buzzer_pin, 20)
-            time.sleep(0.2)
-            gopigo.analogWrite(buzzer_pin, 0)
-            s.send_response(200)
-            s.send_header("Content-Type", "text/plain")
-            s.end_headers()
-            s.wfile.write("")
-        elif s.path == "/reset_all":
-            gopigo.digitalWrite(ledl_pin, 0)
-            gopigo.digitalWrite(ledr_pin, 0)
-            gopigo.analogWrite(buzzer_pin, 0)
-            #gopigo.servo(90)
-            gopigo.stop()
-            s.send_response(200)
-            s.send_header("Content-Type", "text/plain")
-            s.end_headers()
-            s.wfile.write("")
-        else:
-            s.send_error(404, "Unknown path %s" % s.path)
+                s.wfile.write("volt %s\n" % s.server.robot.volts)
+                s.wfile.write("firmware %s\n" % s.server.robot.fw_ver)
+                s.wfile.write("led/left %s\n" % "on" if s.server.robot.ledl != 0 else "off")
+                s.wfile.write("led/right %s\n" % "on" if s.server.robot.ledr != 0 else "off")
+                s.wfile.write("trim %s\n" % s.server.robot.trim)
+                s.wfile.write("us_dist %s\n" % s.server.robot.us_dist)
+            s.server.robot.commandVar.release()
 
 if __name__ == "__main__":
     httpd = GoPiGoServer((HOST_NAME, PORT_NUMBER), GoPiGoHandler)
