@@ -1,7 +1,7 @@
 {
   "extensionName": "gopigo scratch extension",
   "extensionPort": 8080,
-  "host": "localhost",
+  "host": "dex.local",
   "blockSpecs": [
     [ " ", "beep", "beep" ],
     [ " ", "led %m.leftrightboth %m.onoff", "leds"],

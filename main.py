@@ -194,6 +194,7 @@ class Robot:
             gopigo.stop()
         elif parts[1] == "trim_write":
             gopigo.trim_write(int(parts[2]))
+            self.trim = gopigo.trim_read()
         elif parts[1] == "trim_read":
             self.trim = gopigo.trim_read() - 100
         elif parts[1] == "set_speed":
