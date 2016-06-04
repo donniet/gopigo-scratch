@@ -10,7 +10,7 @@
     [ " ", "set servo to %n degrees", "servo"],
     [ " ", "set speed of %m.leftrightboth to %n", "set_speed"],
     [ " ", "stop", "stop"],
-    [ " ", "trim %n", "trim"],
+    [ " ", "trim %n", "trim_value"],
     [ "r", "volt", "volt" ],
     [ "r", "firmware", "firmware" ],
     [ "r", "trim", "trim" ],

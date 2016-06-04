@@ -290,7 +290,7 @@ class GoPiGoHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 s.wfile.write("firmware %s\n" % s.server.robot.fw_ver)
                 s.wfile.write("led/left %s\n" % ("on" if s.server.robot.ledl != 0 else "off"))
                 s.wfile.write("led/right %s\n" % ("on" if s.server.robot.ledr != 0 else "off"))
-                s.wfile.write("trim %s\n" % s.server.robot.trim)
+                s.wfile.write("trim_value %s\n" % s.server.robot.trim)
                 s.wfile.write("us_dist %s\n" % s.server.robot.us_dist)
             s.server.robot.commandVar.release()
 
